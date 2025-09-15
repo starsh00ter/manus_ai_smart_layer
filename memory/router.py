@@ -80,8 +80,7 @@ def call_r1(messages, max_tokens=150):
         result.check_returncode()
         response_data = json.loads(result.stdout)
 
-        # In a real scenario, parse response_data["usage"]["total_tokens"] for actual cost
-        # For now, we'll use the estimated_api_cost for logging if actual is not available
+        # Parse actual tokens spent from API response
         actual_tokens_spent = response_data.get("usage", {}).get("total_tokens", estimated_api_cost)
         _log_cost(actual_tokens_spent, "deepseek_api_call")
 
@@ -104,7 +103,5 @@ COST_LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
 if not COST_LOG_FILE.exists():
     with open(COST_LOG_FILE, "w") as f:
         f.write("timestamp,tokens_spent,action_name\n")
-
-
 
 
