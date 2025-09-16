@@ -2,3 +2,7 @@ timestamp,session_id,action,input_data,output_data,cost_tokens,score,metadata
 
 1758003874,test_session,test_action,"{""query"": ""test query""}","{""response"": ""test response""}",100,0.8,"{""test"": true}"
 1758003874,test_session,another_action,"{""data"": ""more test data""}","{""result"": ""success""}",50,0.9,"{""test"": true}"
+1758003998,e732d945-b301-4cec-8e71-b12fafe6362c,llm_call_failed,"{""prompt"": ""Test prompt for learning integration"", ""model"": ""deepseek-r1"", ""kwargs"": {}}","{""success"": false, ""error"": ""unsupported operand type(s) for +: 'int' and 'str'"", ""response_time"": 7.867813110351562e-05}",0,0.0,"{""model"": ""deepseek-r1"", ""session_id"": ""session_1758003998"", ""error_type"": ""TypeError""}"
+1758003998,e732d945-b301-4cec-8e71-b12fafe6362c,function_test_function,"{""args_count"": 2, ""kwargs_keys"": []}","{""success"": true, ""result_type"": ""int""}",0,1.0,"{""execution_time"": 3.0994415283203125e-06}"
+1758004051,test_session,performance_optimization,"{""reflections_analyzed"": 1, ""action_items_found"": 0}","{""optimizations_planned"": 0, ""success"": true}",0,0.8,"{""smart_layer_version"": ""1.0.0"", ""session_id"": ""test_session"", ""timestamp"": 1758004051.411902}"
+1758004051,test_session,forced_reflection,"{""trigger"": ""manual""}","{""performance_score"": 0.7739999999999999, ""insights_count"": 3, ""action_items_count"": 1}",0,0.7739999999999999,"{""smart_layer_version"": ""1.0.0"", ""session_id"": ""test_session"", ""timestamp"": 1758004051.4123487}"
