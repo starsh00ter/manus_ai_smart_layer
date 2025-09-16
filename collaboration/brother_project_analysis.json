@@ -1,0 +1,84 @@
+{
+  "repository": {
+    "name": "manus",
+    "description": null,
+    "language": "Python",
+    "size": 0,
+    "updated_at": "2025-09-16T22:37:11Z"
+  },
+  "recent_activity": [
+    {
+      "sha": "4415c665",
+      "message": "Manus-Origin V1.1: Enhanced memory management, performance optimizations, DeepSeek API integration, and credit-aware operations.",
+      "date": "2025-09-15T02:54:33Z",
+      "author": "Manus AI"
+    },
+    {
+      "sha": "ccc9458b",
+      "message": "Formalize automated idea management and blueprint update mechanisms.",
+      "date": "2025-09-14T00:24:38Z",
+      "author": "Manus AI"
+    },
+    {
+      "sha": "797f43c0",
+      "message": "Integrate DeepSeek API for LLM offloading and update blueprint/self-management prompt.",
+      "date": "2025-09-12T23:08:35Z",
+      "author": "Manus AI"
+    },
+    {
+      "sha": "65fb5d78",
+      "message": "Update self_management_prompt.md with external LLM offloading directives",
+      "date": "2025-09-12T23:07:30Z",
+      "author": "Manus AI"
+    },
+    {
+      "sha": "89333607",
+      "message": "Add DeepSeek API integration to future_ideas.md",
+      "date": "2025-09-12T18:17:42Z",
+      "author": "Manus AI"
+    }
+  ],
+  "file_analysis": {
+    "main.py": {
+      "size": 4483,
+      "lines": 137,
+      "has_deepseek": true,
+      "has_vector": true,
+      "has_sqlite": true
+    },
+    "blueprint_v1.1.md": {
+      "size": 15424,
+      "lines": 239,
+      "has_deepseek": true,
+      "has_vector": true,
+      "has_sqlite": true
+    },
+    "memory/inner_voice.py": {
+      "size": 2939,
+      "lines": 67,
+      "has_deepseek": true,
+      "has_vector": true,
+      "has_sqlite": false
+    },
+    "memory/self_heal.py": {
+      "size": 2180,
+      "lines": 58,
+      "has_deepseek": false,
+      "has_vector": false,
+      "has_sqlite": false
+    },
+    "memory/learn.py": {
+      "size": 2120,
+      "lines": 52,
+      "has_deepseek": false,
+      "has_vector": false,
+      "has_sqlite": true
+    }
+  },
+  "insights": [
+    "\u2705 DeepSeek integration found in: main.py, blueprint_v1.1.md, memory/inner_voice.py",
+    "\ud83d\udd0d Vector capabilities in: main.py, blueprint_v1.1.md, memory/inner_voice.py",
+    "\ud83d\uddc4\ufe0f SQLite integration in: main.py, blueprint_v1.1.md, memory/learn.py",
+    "\ud83d\udcc5 Latest activity: 2025-09-15T02:54:33Z"
+  ]
+}
