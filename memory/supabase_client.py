@@ -3,17 +3,29 @@ from supabase import create_client, Client
 import json
 import time
 
-SUPABASE_URL = os.environ.get("SUPABASE_URL")
-SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
+def get_supabase_client():
+    """Get Supabase client with proper error handling"""
+    SUPABASE_URL = os.environ.get("SUPABASE_URL")
+    SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
+    
+    if not SUPABASE_URL or not SUPABASE_KEY:
+        raise ValueError("Supabase credentials not found in environment variables. Please set SUPABASE_URL and SUPABASE_KEY.")
+    
+    return create_client(SUPABASE_URL, SUPABASE_KEY)
 
-if not SUPABASE_URL or not SUPABASE_KEY:
-    print("Supabase credentials not found in environment variables.")
-    # Fallback or raise error if Supabase is critical
+# Initialize client lazily
+_supabase_client = None
 
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+def get_client():
+    """Get or create Supabase client"""
+    global _supabase_client
+    if _supabase_client is None:
+        _supabase_client = get_supabase_client()
+    return _supabase_client
 
 def insert_thought(thought_text: str, embedding: list, trajectory_data: dict):
     try:
+        supabase = get_client()
         data, count = supabase.table("thoughts").insert({
             "thought_text": thought_text,
             "embedding": embedding,
@@ -28,6 +40,7 @@ def insert_thought(thought_text: str, embedding: list, trajectory_data: dict):
 
 def get_thoughts(limit: int = 10):
     try:
+        supabase = get_client()
         response = supabase.table("thoughts").select("*").order("timestamp", desc=True).limit(limit).execute()
         print(f"✅ Retrieved {len(response.data)} thoughts from Supabase.")
         return response.data

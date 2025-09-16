@@ -1,0 +1,4 @@
+timestamp,session_id,action,input_data,output_data,cost_tokens,score,metadata
+
+1758003874,test_session,test_action,"{""query"": ""test query""}","{""response"": ""test response""}",100,0.8,"{""test"": true}"
+1758003874,test_session,another_action,"{""data"": ""more test data""}","{""result"": ""success""}",50,0.9,"{""test"": true}"
