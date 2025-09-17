@@ -1,0 +1,21 @@
+{
+  "test_timestamp": "2025-09-17T19:38:09.710771",
+  "test_results": {
+    "configuration": false,
+    "database_client": true,
+    "cache_manager": true,
+    "credit_management": false,
+    "project_coordination": false,
+    "enhanced_router": false,
+    "integration": false
+  },
+  "total_tests": 7,
+  "passed_tests": 2,
+  "failed_tests": 5,
+  "success_rate": 28.57142857142857,
+  "system_info": {
+    "python_version": "3.11.0rc1 (main, Aug 12 2022, 10:02:14) [GCC 11.2.0]",
+    "platform": "posix",
+    "working_directory": "/home/ubuntu/my_manus_knowledge"
+  }
+}

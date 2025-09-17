@@ -1,0 +1,1 @@
+{"message_id": "35647436-b281-47d6-849b-066ad091f2d2", "from_project": "test_project", "to_project": "other_project", "message_type": "test", "title": "Test Message", "content": "This is a test coordination message", "priority": "low", "metadata": {}, "expires_at": "2025-09-18T19:38:44.446455", "_timestamp": "2025-09-17T19:38:44.446467", "_id": 7416095422892964963}
