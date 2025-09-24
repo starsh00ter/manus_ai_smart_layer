@@ -1,0 +1,3 @@
+[submodule "manus_core"]
+	path = manus_core
+	url = https://github.com/moesmovingpictures-tech/manus_core

@@ -11,7 +11,7 @@ import sys
 import os
 
 # Add manus_core to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'manus_core'))
 
 from manus_core.utils.credits import get_credit_manager, check_credits, reserve_credits, update_credits
 from manus_core.routing.coordinator import get_coordinator
@@ -129,6 +129,7 @@ def _get_stored_operation_id() -> str:
 
 def _log_cost(tokens_spent, action_name):
     """Enhanced cost logging with shared credit management"""
+    global _used_today
     try:
         # Update actual usage in shared system
         operation_id = _get_stored_operation_id()
@@ -145,7 +146,6 @@ def _log_cost(tokens_spent, action_name):
                 print(f"⚠️ Failed to update actual usage in shared system")
         
         # Update legacy counter
-        global _used_today
         _reset_daily_credits()
         _used_today += tokens_spent
         
@@ -163,7 +163,6 @@ def _log_cost(tokens_spent, action_name):
         print(f"❌ Error logging cost: {e}")
         # Fallback to legacy logging
         _reset_daily_credits()
-        global _used_today
         _used_today += tokens_spent
         with open(COST_LOG_FILE, "a") as f:
             f.write(f"{time.time()},{tokens_spent},{action_name}\n")
