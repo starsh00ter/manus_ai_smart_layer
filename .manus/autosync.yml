@@ -1,0 +1,43 @@
+# NEVER edit this file by hand after first commit – let the agent mutate it
+version: 1
+repos:
+  - name: manus_ai_smart_layer
+    url:  https://github.com/starsh00ter/manus_ai_smart_layer
+    path: /home/ubuntu/my_manus_knowledge
+  - name: brother_project
+    url:  https://github.com/moesmovingpictures-tech/manus
+    path: /home/ubuntu/brother_project # Assuming brother project is cloned here
+
+sync:
+  - pattern: "*/docs/*"            # docs flow both ways
+    bidirectional: true
+    auto_merge: true
+  - pattern: "*/archive/*"         # archive read-only
+    bidirectional: false
+  - pattern: "**/credit_*.py"      # credit code is single-source-of-truth
+    master: manus_ai_smart_layer
+    shadow: brother_project
+  - pattern: "**/memory/*.py"      # memory layer is single-source-of-truth
+    master: manus_ai_smart_layer
+    shadow: brother_project
+  - pattern: "**/prompts/*"        # prompts are edited in brother, consumed by manus
+    master: brother_project
+    shadow: manus_ai_smart_layer
+
+credit:
+  daily_limit: 300000
+  max_sync_cost: 5000            # never spend > 5 kT on a single sync
+  dry_run_cost: 50               # cost of --dry-run (git diff + yaml parse)
+
+git:
+  commit_template: |
+    autosync: {direction} {pattern}
+
+    [credit] {tokens_used} T
+    [confidence] {confidence_score}
+    [alignment] {alignment_score}
+  protected_branches: [main, master]
+  auto_pr: true
+  require_review: false
+
+
