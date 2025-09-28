@@ -51,37 +51,65 @@ class ManusSmartLayer:
         - Trajectory logging
         - Performance scoring
         - Automatic reflection triggers
+        - Reusable trace creation
         """
         
         # Check credit limits before making call
         if not self._check_credit_limits():
             raise Exception("Daily credit limit exceeded. Please wait for reset or optimize usage.")
         
+        # Create reusable trace before expensive operation
+        trace_id = self._create_reusable_trace("smart_call", prompt, model, **kwargs)
+        
         try:
             # Use enhanced call with learning integration
             result = enhanced_call_r1(prompt, model, **kwargs)
             
+            # Update trace with successful result
+            self._update_reusable_trace(trace_id, result, success=True)
+            
             # Log successful smart call
             self._log_smart_action("smart_call", {
                 "prompt_length": len(prompt),
-                "model": model
+                "model": model,
+                "trace_id": trace_id
             }, {
                 "success": True,
-                "result_available": True
+                "result_available": True,
+                "trace_created": True
             }, score=1.0)
+            
+            # Update shared situation board
+            self._update_situation_board("smart_call_completed", {
+                "prompt_length": len(prompt),
+                "model": model,
+                "success": True
+            })
             
             return result
             
         except Exception as e:
+            # Update trace with error
+            self._update_reusable_trace(trace_id, {"error": str(e)}, success=False)
+            
             # Log failed smart call
             self._log_smart_action("smart_call_failed", {
                 "prompt_length": len(prompt),
                 "model": model,
-                "error": str(e)
+                "error": str(e),
+                "trace_id": trace_id
             }, {
                 "success": False,
-                "error_type": type(e).__name__
+                "error_type": type(e).__name__,
+                "trace_created": True
             }, score=0.0)
+            
+            # Update shared situation board
+            self._update_situation_board("smart_call_failed", {
+                "prompt_length": len(prompt),
+                "model": model,
+                "error": str(e)
+            })
             
             raise e
     
@@ -122,6 +150,103 @@ class ManusSmartLayer:
         except Exception as e:
             print(f"❌ Error checking credit limits: {e}")
             return True  # Allow operation if check fails
+    
+    def _log_smart_action(self, action: str, input_data: Dict[str, Any], 
+                         output_data: Dict[str, Any], score: float = 0.0):
+        """Log an action with smart layer metadata"""
+        log_action(
+            action=action,
+            input_data=input_data,
+            output_data=output_data,
+            cost_tokens=0,
+            score=score,
+            metadata={
+                "smart_layer_version": self.version,
+                "session_id": self.session_id,
+                "timestamp": time.time()
+            }
+        )
+    
+    def _create_reusable_trace(self, operation: str, prompt: str, model: str, **kwargs) -> str:
+        """Create a reusable trace for expensive operations"""
+        import hashlib
+        
+        # Create unique trace ID
+        trace_content = f"{operation}:{prompt}:{model}:{json.dumps(kwargs, sort_keys=True)}"
+        trace_id = hashlib.md5(trace_content.encode()).hexdigest()[:12]
+        
+        # Create trace directory
+        trace_dir = "/home/ubuntu/my_manus_knowledge/traces"
+        os.makedirs(trace_dir, exist_ok=True)
+        
+        # Create trace file
+        trace_file = f"{trace_dir}/{trace_id}.json"
+        trace_data = {
+            "trace_id": trace_id,
+            "operation": operation,
+            "prompt": prompt,
+            "model": model,
+            "kwargs": kwargs,
+            "created_at": time.time(),
+            "status": "pending",
+            "session_id": self.session_id
+        }
+        
+        with open(trace_file, 'w') as f:
+            json.dump(trace_data, f, indent=2)
+        
+        return trace_id
+    
+    def _update_reusable_trace(self, trace_id: str, result: Dict[str, Any], success: bool):
+        """Update a reusable trace with results"""
+        trace_file = f"/home/ubuntu/my_manus_knowledge/traces/{trace_id}.json"
+        
+        if os.path.exists(trace_file):
+            with open(trace_file, 'r') as f:
+                trace_data = json.load(f)
+            
+            trace_data.update({
+                "result": result,
+                "success": success,
+                "completed_at": time.time(),
+                "status": "completed" if success else "failed"
+            })
+            
+            with open(trace_file, 'w') as f:
+                json.dump(trace_data, f, indent=2)
+    
+    def _update_situation_board(self, event: str, data: Dict[str, Any]):
+        """Update the shared situation board with current activity"""
+        try:
+            board_file = "/home/ubuntu/my_manus_knowledge/shared_situation_board.md"
+            
+            # Read current board
+            if os.path.exists(board_file):
+                with open(board_file, 'r') as f:
+                    content = f.read()
+            else:
+                content = "# Shared Situation Board\n\n"
+            
+            # Create update entry
+            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S UTC")
+            update_entry = f"\n**{timestamp} - Account B Activity:** {event}\n"
+            
+            if data:
+                for key, value in data.items():
+                    update_entry += f"- {key}: {value}\n"
+            
+            # Find the "## Notes" section or append at the end
+            if "## Notes" in content:
+                content = content.replace("## Notes", update_entry + "\n## Notes")
+            else:
+                content += update_entry
+            
+            # Write updated board
+            with open(board_file, 'w') as f:
+                f.write(content)
+                
+        except Exception as e:
+            print(f"⚠️ Could not update situation board: {e}")
     
     def _log_smart_action(self, action: str, input_data: Dict[str, Any], 
                          output_data: Dict[str, Any], score: float = 0.0):

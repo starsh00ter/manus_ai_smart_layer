@@ -1,0 +1,39 @@
+name: autosync
+
+on:
+  push:
+    branches-ignore: [main, master]   # runs on feature branches
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  autosync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: credit gate
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y bc yq
+          chmod +x .manus/credit-gate.sh
+          .manus/credit-gate.sh   # fails fast if limit exceeded
+
+      - name: dry-run sync
+        run: |
+          pip install pyyaml
+          python .manus/autosync.py --dry-run --source ${{ github.event_name }}
+
+      - name: doc refresh
+        run: python .manus/readme-autodoc.py
+
+      - name: commit doc update
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "autosync: doc refresh [skip ci]"
+          file_pattern: "README.md .manus/daily-tokens.log"
+
+
