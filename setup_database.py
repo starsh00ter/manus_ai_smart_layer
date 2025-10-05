@@ -2,123 +2,106 @@
 
 import os
 import sys
+import time
+import json
 
-# Set environment variables
-os.environ["SUPABASE_URL"] = "https://wxqhercmwmyhihfcuwti.supabase.co"
-os.environ["SUPABASE_KEY"] = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind4cWhlcmNtd215aGloZmN1d3RpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc1NzAyNzksImV4cCI6MjA3MzE0NjI3OX0.XrExZWhz4sE0E08Z7rXBlJyYb8bKxpyh4i7uk2bnvx8"
+# Add manus_core to path
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'manus_core'))
 
-from memory.supabase_client import get_client
+from manus_core.db.client import get_shared_client
 
 def setup_database():
-    """Set up the database schema for the Manus AI Smart Layer"""
+    """Set up the database schema for the Manus AI Smart Layer, aligning with shared schemas."""
     print("Setting up database schema...")
     
     try:
-        supabase = get_client()
-        print("✅ Connected to Supabase")
+        # Ensure Supabase credentials are set as environment variables
+        supabase_url = os.getenv('SUPABASE_URL')
+        supabase_key = os.getenv('SUPABASE_KEY')
+
+        if not supabase_url or not supabase_key:
+            print("❌ Supabase credentials (SUPABASE_URL, SUPABASE_KEY) not found in environment variables.")
+            print("Please set them before running this script. Example:")
+            print("  export SUPABASE_URL=\"https://your-project-id.supabase.co\"")
+            print("  export SUPABASE_KEY=\"your-anon-public-key\"")
+            print("  (If using a DATABASE_URL connection string, extract the URL and key from it.)")
+            sys.exit(1)
+
+        # Use the shared client from manus_core
+        supabase_client = get_shared_client("smart_layer")
+        print("✅ Initialized Shared Supabase Client")
         
-        # SQL commands to create tables
-        sql_commands = [
-            # Enable pgvector extension (this might need to be done manually in Supabase dashboard)
-            """
-            -- Enable pgvector extension for vector similarity search
-            -- Note: This might need to be enabled manually in Supabase dashboard
-            -- CREATE EXTENSION IF NOT EXISTS vector;
-            """,
+        # Read the shared schema SQL
+        with open("/home/ubuntu/my_manus_knowledge/shared_database_schema.sql", "r") as f:
+            shared_sql = f.read()
             
-            # Create thoughts table for storing AI thoughts and embeddings
-            """
-            CREATE TABLE IF NOT EXISTS thoughts (
-                id BIGSERIAL PRIMARY KEY,
-                thought_text TEXT NOT NULL,
-                embedding VECTOR(1536),  -- OpenAI embedding dimension
-                trajectory JSONB,
-                timestamp BIGINT NOT NULL,
-                created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-            );
-            """,
-            
-            # Create trajectory table for tracking AI decision-making
-            """
-            CREATE TABLE IF NOT EXISTS trajectory (
-                id BIGSERIAL PRIMARY KEY,
-                session_id TEXT,
-                action TEXT NOT NULL,
-                input_data JSONB,
-                output_data JSONB,
-                cost_tokens INTEGER DEFAULT 0,
-                score FLOAT DEFAULT 0.0,
-                timestamp BIGINT NOT NULL,
-                created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-            );
-            """,
-            
-            # Create credit_log table for tracking token usage
-            """
-            CREATE TABLE IF NOT EXISTS credit_log (
-                id BIGSERIAL PRIMARY KEY,
-                operation TEXT NOT NULL,
-                tokens_used INTEGER NOT NULL,
-                cost_estimate FLOAT,
-                timestamp BIGINT NOT NULL,
-                metadata JSONB,
-                created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-            );
-            """,
-            
-            # Create knowledge_graph table for storing relationships
-            """
-            CREATE TABLE IF NOT EXISTS knowledge_graph (
-                id BIGSERIAL PRIMARY KEY,
-                entity_a TEXT NOT NULL,
-                relationship TEXT NOT NULL,
-                entity_b TEXT NOT NULL,
-                confidence FLOAT DEFAULT 1.0,
-                metadata JSONB,
-                created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-            );
-            """,
-            
-            # Create indexes for better performance
-            """
-            CREATE INDEX IF NOT EXISTS idx_thoughts_timestamp ON thoughts(timestamp DESC);
-            CREATE INDEX IF NOT EXISTS idx_trajectory_session ON trajectory(session_id);
-            CREATE INDEX IF NOT EXISTS idx_trajectory_timestamp ON trajectory(timestamp DESC);
-            CREATE INDEX IF NOT EXISTS idx_credit_log_timestamp ON credit_log(timestamp DESC);
-            CREATE INDEX IF NOT EXISTS idx_knowledge_graph_entities ON knowledge_graph(entity_a, entity_b);
-            """
-        ]
+        # Read the enhanced schema SQL (for credit ledger, config, etc.)
+        with open("/home/ubuntu/my_manus_knowledge/enhanced_database_schema.sql", "r") as f:
+            enhanced_sql = f.read()
+
+        # Combine SQL commands
+        combined_sql = shared_sql + "\n" + enhanced_sql
+
+        print("\n📝 Database setup instructions for Account A and B:")
+        print("1. Ensure your environment variables are set:")
+        print("   export SUPABASE_URL=\"https://wxqhercmwmyhihfcuwti.supabase.co\"")
+        print("   export SUPABASE_KEY=\"I<3women\" (or your actual anon public key)")
+        print("2. Go to your Supabase dashboard: https://app.supabase.com/project/wxqhercmwmyhihfcuwti")
+        print("3. Navigate to the SQL Editor")
+        print("4. Execute the following combined SQL commands to create all shared and project-specific tables:")
+        print("""\n""" + combined_sql + """\n""")
+        print("5. Ensure the pgvector extension is enabled in your Supabase dashboard (Database -> Extensions).")
         
-        # Execute SQL commands
-        for i, sql in enumerate(sql_commands):
-            if sql.strip():
-                try:
-                    print(f"Executing SQL command {i+1}...")
-                    # Note: Supabase Python client doesn't directly support raw SQL execution
-                    # We'll need to create tables through the Supabase dashboard or use the REST API
-                    print(f"SQL to execute:\n{sql}")
-                except Exception as e:
-                    print(f"❌ Error executing SQL command {i+1}: {e}")
-        
-        print("\n📝 Database setup instructions:")
-        print("1. Go to your Supabase dashboard: https://app.supabase.com/project/wxqhercmwmyhihfcuwti")
-        print("2. Navigate to the SQL Editor")
-        print("3. Execute the SQL commands shown above")
-        print("4. Enable the pgvector extension if needed")
-        
-        # Test table creation by trying to insert a test record
-        print("\nTesting table access...")
-        try:
-            # Try to select from thoughts table to see if it exists
-            result = supabase.table('thoughts').select('*').limit(1).execute()
-            print("✅ Thoughts table is accessible")
-        except Exception as e:
-            print(f"❌ Thoughts table not accessible: {e}")
-            print("Please create the tables manually using the SQL commands above")
+        # Check health and schema info
+        health = supabase_client.health_check()
+        print(f"\nDatabase Health Check: {health['status']} - {health['message']}")
+
+        if health['status'] == 'connected':
+            schema_info = supabase_client.get_schema_info()
+            print("\nAvailable Schemas and Tables:")
+            if "error" not in schema_info:
+                for schema, tables in schema_info.items():
+                    print(f"  Schema '{schema}':")
+                    for table in tables:
+                        print(f"    - {table['name']} ({table['type']})")
+            else:
+                print(f"  Error retrieving schema info: {schema_info['error']}")
+
+            # Attempt to insert into shared.system_manifest to ensure it exists and is writable
+            print("\nAttempting to update shared.system_manifest...")
+            try:
+                test_manifest_data = {
+                    "latest_commit_hash_project1": "setup_test",
+                    "schema_version": "1.0.0",
+                    "core_library_version": "1.0.0",
+                    "project1_last_update": time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
+                }
+                response = supabase_client.update(
+                    "system_manifest", 
+                    test_manifest_data,
+                    {"latest_commit_hash_project1": "non_existent_hash"}, 
+                    schema="shared"
+                )
+                if response:
+                    print("✅ shared.system_manifest table accessible and writable (update test)")
+                else:
+                    existing_manifest = supabase_client.select("system_manifest", schema="shared")
+                    if not existing_manifest:
+                        supabase_client.insert("system_manifest", test_manifest_data, schema="shared")
+                        print("✅ shared.system_manifest table accessible and writable (insert test)")
+                    else:
+                        print("✅ shared.system_manifest table accessible (already contains data)")
+
+            except Exception as e:
+                print(f"❌ shared.system_manifest table not accessible or writable: {e}")
+                print("Please ensure the shared.system_manifest table is created and accessible.")
+        else:
+            print("Database not connected, skipping table access tests.")
         
     except Exception as e:
         print(f"❌ Database setup failed: {e}")
 
 if __name__ == "__main__":
     setup_database()
+
 
